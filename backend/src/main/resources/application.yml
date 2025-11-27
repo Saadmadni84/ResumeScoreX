@@ -2,9 +2,67 @@ spring:
   application:
     name: ats-score-backend
   
+  # PostgreSQL Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/atsdb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  
+  # JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+# Server Configuration
 server:
   port: 8080
+  error:
+    include-message: always
 
+# File Storage Configuration
+file:
+  storage:
+    location: ./uploads
+
+# ATS Scoring Engine Weights
+scoring:
+  weights:
+    keyword: 0.5
+    skill: 0.3
+    formatting: 0.2
+
+# Logging Configuration
 logging:
   level:
-    com.ats.core: INFO
+    root: INFO
+    com.ats.core: DEBUG
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+---
+# Production Profile Configuration
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+# Production database, S3 storage, and secure configurations go here
+# Example:
+# spring:
+#   datasource:
+#     url: ${DATABASE_URL}
+#     username: ${DB_USERNAME}
+#     password: ${DB_PASSWORD}
+# file:
+#   storage:
+#     location: ${S3_BUCKET_PATH}
