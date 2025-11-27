@@ -35,10 +35,10 @@ public class ReportController {
      * Generates a PDF report for a scored resume.
      * 
      * @param request report generation request
-     * @return report metadata with download URL
+     * @return PDF file directly as byte array with download headers
      */
     @PostMapping
-    public ResponseEntity<Map<String, String>> generateReport(@RequestBody Map<String, String> request) {
+    public ResponseEntity<byte[]> generateReport(@RequestBody Map<String, String> request) {
         
         String resumeIdStr = request.get("resumeId");
         String scoreIdStr = request.get("scoreId");
@@ -65,13 +65,16 @@ public class ReportController {
         log.info("Report generation request for resume: {}, score: {}, template: {}", 
                 resumeId, scoreId, template);
         
-        String reportId = reportService.generatePdfReport(resumeId, scoreId, template);
+        byte[] pdfBytes = reportService.generatePdfReport(resumeId, scoreId, template);
         
-        Map<String, String> response = new HashMap<>();
-        response.put("reportId", reportId);
-        response.put("downloadUrl", "/api/report/download/" + reportId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "ats-report.pdf");
+        headers.setContentLength(pdfBytes.length);
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
     }
     
     /**
