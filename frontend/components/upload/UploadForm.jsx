@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api';
+
 export default function UploadForm() {
   const router = useRouter();
   const fileInputRef = useRef(null);
@@ -81,7 +83,7 @@ export default function UploadForm() {
         formData.append('jobDescription', jobDescription);
       }
 
-      const response = await axios.post('http://localhost:8080/api/resume/upload', formData, {
+      const response = await axios.post(`${API_BASE_URL}/resume/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

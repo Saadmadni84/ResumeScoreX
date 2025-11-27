@@ -7,6 +7,8 @@ import ScoreCard from '../../components/score/ScoreCard';
 import RadarChart from '../../components/score/RadarChart';
 import ImprovementTips from '../../components/score/ImprovementTips';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api';
+
 export default function Dashboard() {
   const router = useRouter();
   const { resumeId } = router.query;
@@ -20,7 +22,7 @@ export default function Dashboard() {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8080/api/resume/score', {
+      const response = await axios.post(`${API_BASE_URL}/resume/score`, {
         resumeId,
         jobDescription,
       });
