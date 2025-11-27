@@ -1,16 +1,41 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15
+    container_name: ats-postgres
+    environment:
+      POSTGRES_DB: atsdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - ats-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: ats-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/atsdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
     volumes:
-      - ./storage/uploads:/app/uploads
+      - ./backend/uploads:/app/uploads
     networks:
       - ats-network
 
@@ -18,12 +43,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+    container_name: ats-frontend
     environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8080/api
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
     depends_on:
       - backend
+    ports:
+      - "3000:3000"
     networks:
       - ats-network
 
@@ -32,4 +58,4 @@ networks:
     driver: bridge
 
 volumes:
-  uploads:
+  pgdata:
