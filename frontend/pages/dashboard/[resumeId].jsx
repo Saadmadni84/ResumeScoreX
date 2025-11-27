@@ -3,6 +3,9 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import axios from 'axios';
+import ScoreCard from '../../components/score/ScoreCard';
+import RadarChart from '../../components/score/RadarChart';
+import ImprovementTips from '../../components/score/ImprovementTips';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -35,118 +38,178 @@ export default function Dashboard() {
     }
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getScoreLabel = (score) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Fair';
-    return 'Needs Improvement';
-  };
-
   return (
     <Layout>
       <Head>
         <title>Dashboard - ATS Score</title>
       </Head>
 
-      <div className=\"container mx-auto px-4 py-12\">
-        <h1 className=\"mb-8 text-center\">Resume Analysis Dashboard</h1>
-
-        {!scoreResult ? (
-          <div className=\"max-w-2xl mx-auto\">
-            <div className=\"card\">
-              <h2 className=\"mb-4\">Analyze Your Resume</h2>
-              <p className=\"text-gray-600 mb-6\">
-                Enter a job description to analyze how well your resume matches the requirements.
-              </p>
-
-              <textarea
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                rows=\"8\"
-                placeholder=\"Paste the job description here...\"
-                className=\"w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent mb-4\"
-              />
-
-              {error && (
-                <div className=\"mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700\">
-                  {error}
-                </div>
-              )}
-
-              <button
-                onClick={handleAnalyze}
-                disabled={loading}
-                className=\"btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed\"
-              >
-                {loading ? 'Analyzing...' : 'Analyze Resume'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className=\"max-w-4xl mx-auto\">
-            {/* Overall Score */}
-            <div className=\"card mb-8 text-center\">
-              <h2 className=\"mb-4\">Overall ATS Score</h2>
-              <div className={`text-6xl font-bold ${getScoreColor(scoreResult.overall)}`}>
-                {scoreResult.overall.toFixed(1)}%
-              </div>
-              <p className=\"text-xl mt-2 text-gray-600\">{getScoreLabel(scoreResult.overall)}</p>
-            </div>
-
-            {/* Score Breakdown */}
-            <div className=\"grid md:grid-cols-3 gap-6 mb-8\">
-              <div className=\"card text-center\">
-                <h3 className=\"mb-2\">Keyword Match</h3>
-                <div className={`text-3xl font-bold ${getScoreColor(scoreResult.keywordMatch)}`}>
-                  {scoreResult.keywordMatch.toFixed(1)}%
-                </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4">
+        <div className="container mx-auto">
+          {!scoreResult ? (
+            /* Job Description Input */
+            <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-gray-800 mb-4">Analyze Your Resume</h1>
+                <p className="text-lg text-gray-600">
+                  Enter a job description to see how well your resume matches the requirements.
+                </p>
               </div>
 
-              <div className=\"card text-center\">
-                <h3 className=\"mb-2\">Skill Relevance</h3>
-                <div className={`text-3xl font-bold ${getScoreColor(scoreResult.skillRelevance)}`}>
-                  {scoreResult.skillRelevance.toFixed(1)}%
+              <div className="bg-white rounded-2xl shadow-lg p-8">
+                <label htmlFor="jobDescription" className="block text-lg font-semibold text-gray-800 mb-4">
+                  Job Description
+                </label>
+                <textarea
+                  id="jobDescription"
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  rows="10"
+                  placeholder="Paste the complete job description here...&#10;&#10;Include:&#10;- Job responsibilities&#10;- Required skills&#10;- Qualifications&#10;- Experience requirements"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none text-gray-700"
+                />
+
+                {error && (
+                  <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-red-700 font-medium">{error}</p>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleAnalyze}
+                  disabled={loading || !jobDescription.trim()}
+                  className="mt-6 btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <svg className="animate-spin h-6 w-6 mr-3" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      Analyzing Resume...
+                    </div>
+                  ) : (
+                    'Analyze Resume'
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Score Results - 2 Column Layout */
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-gray-800 mb-2">ATS Analysis Results</h1>
+                <p className="text-gray-600">Resume ID: {resumeId}</p>
+              </div>
+
+              {/* Desktop: 2-column, Mobile: Stacked */}
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-8">
+                  <ScoreCard score={scoreResult.overall} />
+
+                  {/* Keyword & Skills Match Summary */}
+                  <div className="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Match Summary</h2>
+                    
+                    <div className="space-y-6">
+                      {/* Keyword Match */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-gray-700">Keyword Match</h3>
+                          <span className="text-2xl font-bold text-primary">
+                            {scoreResult.keywordMatch.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div
+                            className="bg-primary h-3 rounded-full transition-all duration-1000"
+                            style={{ width: `${scoreResult.keywordMatch}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Skill Relevance */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-gray-700">Skill Relevance</h3>
+                          <span className="text-2xl font-bold text-secondary">
+                            {scoreResult.skillRelevance.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div
+                            className="bg-secondary h-3 rounded-full transition-all duration-1000"
+                            style={{ width: `${scoreResult.skillRelevance}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Formatting */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-semibold text-gray-700">Formatting Quality</h3>
+                          <span className="text-2xl font-bold text-accent">
+                            {scoreResult.formatting.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div
+                            className="bg-accent h-3 rounded-full transition-all duration-1000"
+                            style={{ width: `${scoreResult.formatting}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-8">
+                  <RadarChart
+                    keywordMatch={scoreResult.keywordMatch}
+                    skillRelevance={scoreResult.skillRelevance}
+                    formatting={scoreResult.formatting}
+                  />
+                  <ImprovementTips tips={scoreResult.improvementTips} />
                 </div>
               </div>
 
-              <div className=\"card text-center\">
-                <h3 className=\"mb-2\">Formatting</h3>
-                <div className={`text-3xl font-bold ${getScoreColor(scoreResult.formatting)}`}>
-                  {scoreResult.formatting.toFixed(1)}%
-                </div>
+              {/* Actions */}
+              <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+                <button
+                  onClick={() => setScoreResult(null)}
+                  className="btn-secondary px-8 py-3 text-lg"
+                >
+                  Analyze Another Job
+                </button>
+                <button
+                  onClick={() => router.push('/upload')}
+                  className="btn-primary px-8 py-3 text-lg"
+                >
+                  Upload New Resume
+                </button>
               </div>
             </div>
-
-            {/* Improvement Tips */}
-            <div className=\"card\">
-              <h2 className=\"mb-4\">Improvement Recommendations</h2>
-              <ul className=\"space-y-3\">
-                {scoreResult.improvementTips.map((tip, index) => (
-                  <li key={index} className=\"flex items-start\">
-                    <span className=\"text-primary mr-3 text-xl\">\u2022</span>
-                    <span className=\"text-gray-700\">{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Actions */}
-            <div className=\"mt-8 flex justify-center space-x-4\">
-              <button
-                onClick={() => setScoreResult(null)}
-                className=\"btn-secondary\"
-              >
-                Analyze Another Job
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </Layout>
   );
