@@ -9,7 +9,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -185,9 +184,9 @@ public class ReportService {
         contentStream.beginText();
         
         if (bold) {
-            contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), fontSize);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
         } else {
-            contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), fontSize);
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
         }
         
         contentStream.newLineAtOffset(x, y);

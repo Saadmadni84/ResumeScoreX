@@ -16,11 +16,6 @@ export default function Dashboard() {
   const [error, setError] = useState('');
 
   const handleAnalyze = async () => {
-    if (!jobDescription.trim()) {
-      setError('Please enter a job description');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
@@ -52,20 +47,20 @@ export default function Dashboard() {
               <div className="text-center mb-8">
                 <h1 className="text-4xl font-bold text-gray-800 mb-4">Analyze Your Resume</h1>
                 <p className="text-lg text-gray-600">
-                  Enter a job description to see how well your resume matches the requirements.
+                  Optionally add a job description to see how well your resume matches, or analyze without one for general feedback.
                 </p>
               </div>
 
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <label htmlFor="jobDescription" className="block text-lg font-semibold text-gray-800 mb-4">
-                  Job Description
+                  Job Description <span className="text-sm font-normal text-gray-500">(Optional)</span>
                 </label>
                 <textarea
                   id="jobDescription"
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
                   rows="10"
-                  placeholder="Paste the complete job description here...&#10;&#10;Include:&#10;- Job responsibilities&#10;- Required skills&#10;- Qualifications&#10;- Experience requirements"
+                  placeholder="Optional: Paste a job description to compare your resume against specific requirements.&#10;&#10;Leave empty for general resume quality analysis."
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none text-gray-700"
                 />
 
@@ -82,7 +77,7 @@ export default function Dashboard() {
 
                 <button
                   onClick={handleAnalyze}
-                  disabled={loading || !jobDescription.trim()}
+                  disabled={loading}
                   className="mt-6 btn-primary w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (

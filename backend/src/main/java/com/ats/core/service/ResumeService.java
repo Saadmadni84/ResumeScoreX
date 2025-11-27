@@ -91,16 +91,13 @@ public class ResumeService {
      * Scores a resume against a job description.
      * 
      * @param resumeId the ID of the resume to score
-     * @param jobDescription the job description text
+     * @param jobDescription the job description text (optional - if empty, scores based on general best practices)
      * @return detailed scoring results
      */
     public ScoreResult scoreResume(UUID resumeId, String jobDescription) {
-        if (jobDescription == null || jobDescription.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Job description cannot be empty");
-        }
-        
         Resume resume = getOrThrow(resumeId);
-        log.debug("Scoring resume ID: {} against job description", resumeId);
+        log.debug("Scoring resume ID: {} {}", resumeId, 
+                 (jobDescription != null && !jobDescription.isBlank()) ? "against job description" : "with general analysis");
         
         // Compute score
         ScoreResult scoreResult = scoringService.computeScore(resume.getExtractedText(), jobDescription);

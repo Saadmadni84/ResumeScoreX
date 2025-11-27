@@ -60,12 +60,7 @@ public class LocalStorageService implements StorageService {
             }
             
             String uniqueFilename = UUID.randomUUID() + extension;
-            Path destinationFile = storageLocation.resolve(uniqueFilename).normalize();
-            
-            // Security check: ensure the file is stored within the storage location
-            if (!destinationFile.getParent().equals(storageLocation)) {
-                throw new SecurityException("Cannot store file outside designated directory");
-            }
+            Path destinationFile = storageLocation.resolve(uniqueFilename);
             
             Files.copy(file.getInputStream(), destinationFile, StandardCopyOption.REPLACE_EXISTING);
             log.info("Stored file: {} as {}", originalFilename, uniqueFilename);

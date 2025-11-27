@@ -67,10 +67,6 @@ public class ResumeController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "resumeId is required");
         }
         
-        if (jobDescription == null || jobDescription.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "jobDescription is required");
-        }
-        
         UUID resumeId;
         try {
             resumeId = UUID.fromString(resumeIdStr);

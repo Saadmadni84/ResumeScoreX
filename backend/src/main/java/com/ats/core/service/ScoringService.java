@@ -41,26 +41,33 @@ public class ScoringService {
      * Computes comprehensive ATS score for a resume against a job description.
      * 
      * @param resumeText the extracted resume text
-     * @param jobDescription the job description text
+     * @param jobDescription the job description text (can be null or empty for general analysis)
      * @return detailed scoring results with improvement tips
      */
     public ScoreResult computeScore(String resumeText, String jobDescription) {
         // Normalize and tokenize texts
         String normalizedResume = TextCleaner.normalize(resumeText);
-        String normalizedJD = TextCleaner.normalize(jobDescription);
+        String normalizedJD = (jobDescription != null && !jobDescription.isBlank()) 
+                              ? TextCleaner.normalize(jobDescription) : "";
         
         List<String> resumeTokens = Tokenizer.tokenize(normalizedResume);
         List<String> jdTokens = Tokenizer.tokenize(normalizedJD);
         
         // Compute individual scores
-        double keywordMatch = computeKeywordMatch(resumeTokens, jdTokens);
-        double skillRelevance = computeSkillRelevance(resumeTokens, jdTokens);
+        double keywordMatch = jdTokens.isEmpty() ? 0.0 : computeKeywordMatch(resumeTokens, jdTokens);
+        double skillRelevance = jdTokens.isEmpty() ? 0.0 : computeSkillRelevance(resumeTokens, jdTokens);
         double formatting = computeFormattingScore(normalizedResume);
         
         // Compute weighted overall score
-        double overall = (keywordMatch * keywordWeight) +
-                        (skillRelevance * skillWeight) +
-                        (formatting * formattingWeight);
+        // If no job description provided, overall score is just formatting quality
+        double overall;
+        if (jdTokens.isEmpty()) {
+            overall = formatting;
+        } else {
+            overall = (keywordMatch * keywordWeight) +
+                     (skillRelevance * skillWeight) +
+                     (formatting * formattingWeight);
+        }
         
         // Generate improvement tips
         List<String> improvementTips = generateImprovementTips(keywordMatch, skillRelevance, formatting);
@@ -120,25 +127,80 @@ public class ScoringService {
      * @return formatting score (0-100)
      */
     private double computeFormattingScore(String resumeText) {
-        double baseScore = 50.0;
-        
-        if (TextCleaner.containsEmail(resumeText)) {
-            baseScore += 10;
+        if (resumeText == null || resumeText.isEmpty()) {
+            return 0.0;
         }
         
-        if (TextCleaner.containsPhone(resumeText)) {
-            baseScore += 10;
+        double score = 0.0;
+        
+        // Contact Information (20 points)
+        boolean hasEmail = TextCleaner.containsEmail(resumeText);
+        boolean hasPhone = TextCleaner.containsPhone(resumeText);
+        
+        if (hasEmail && hasPhone) {
+            score += 20;
+        } else if (hasEmail || hasPhone) {
+            score += 10;
         }
         
-        if (TextCleaner.containsBulletPoints(resumeText)) {
-            baseScore += 10;
+        // Resume Structure (30 points)
+        boolean hasHeadings = TextCleaner.containsHeadings(resumeText);
+        boolean hasBullets = TextCleaner.containsBulletPoints(resumeText);
+        
+        if (hasHeadings) {
+            score += 15;
         }
         
-        if (TextCleaner.containsHeadings(resumeText)) {
-            baseScore += 10;
+        if (hasBullets) {
+            score += 15;
         }
         
-        return Math.min(baseScore, 100.0);
+        // Content Length Analysis (20 points)
+        int wordCount = resumeText.split("\\s+").length;
+        if (wordCount >= 300 && wordCount <= 800) {
+            score += 20; // Optimal length
+        } else if (wordCount >= 200 && wordCount < 300) {
+            score += 15; // Acceptable but short
+        } else if (wordCount > 800 && wordCount <= 1200) {
+            score += 15; // Acceptable but long
+        } else if (wordCount >= 100 && wordCount < 200) {
+            score += 10; // Too short
+        } else if (wordCount > 1200) {
+            score += 10; // Too long
+        } else {
+            score += 5; // Very short
+        }
+        
+        // Readability & Organization (30 points)
+        // Check for line breaks (paragraphs)
+        int lineBreaks = resumeText.split("\\n").length;
+        if (lineBreaks > 5) {
+            score += 15; // Well organized with sections
+        } else if (lineBreaks > 2) {
+            score += 10; // Some structure
+        } else {
+            score += 5; // Poor structure
+        }
+        
+        // Check for variety in content (not just repetitive)
+        Set<String> uniqueWords = new HashSet<>();
+        String[] words = resumeText.split("\\s+");
+        for (String word : words) {
+            if (word.length() > 3) { // Only count meaningful words
+                uniqueWords.add(word);
+            }
+        }
+        
+        double uniqueRatio = words.length > 0 ? (double) uniqueWords.size() / words.length : 0;
+        if (uniqueRatio > 0.4) {
+            score += 15; // Good vocabulary diversity
+        } else if (uniqueRatio > 0.25) {
+            score += 10; // Moderate diversity
+        } else {
+            score += 5; // Low diversity (repetitive)
+        }
+        
+        return Math.min(score, 100.0);
     }
     
     /**
