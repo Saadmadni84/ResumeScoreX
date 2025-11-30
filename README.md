@@ -144,7 +144,7 @@ This project is licensed under the MIT License.
 
 - Your Name - Initial work
 
-## 🙏 Acknowledgments
+# 🙏 Acknowledgments
 
 - Spring Boot team
 - Next.js team
